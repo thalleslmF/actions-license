@@ -16,6 +16,7 @@
 
 const core = require('@actions/core')
 const github = require('@actions/github')
+const axios = require('axios');
 const fs = require("fs");
 
 function getExtensionCommentPattern(extension) {
@@ -35,26 +36,13 @@ function getExtensionCommentPattern(extension) {
 
 const checkLicense = async (fileNames, copyrightContent) => {
     const token = core.getInput('token')
-
-    const octokit = github.getOctokit(token)
-    const prNumber = github.context.payload.pull_request ? github.context.payload.pull_request.number :  1
-    console.log(prNumber)
-    console.log( github.context.payload)
-    const owner = github.context.payload.repository.owner
-    const repo = github.context.payload.repository.name
-    console.log(owner)
-    console.log( github.context.payload)
-    const responsePr = await octokit.rest.pulls.get({
-        owner: owner,
-        repo: repo,
-        pull_number: prNumber
-    })
-    console.log(responsePr.data.head.sha)
-    const responseCompare = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
-        owner: owner,
-        repo: repo,
-        basehead: `${responsePr.data.head.sha}...${responsePr.data.base.sha}`
-    })
+    const compare = github.context.payload.compare
+    console.log(compare)
+    const headers = {
+        authorization: `token ${token}`
+    }
+    const responseCompare = await axios.get(compare,{ headers: headers })
+    console.log(responseCompare)
     const listFilesPr = responseCompare.data.files.map(
         file => file.filename
     )
