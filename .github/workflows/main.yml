@@ -27,3 +27,5 @@ jobs:
 
       - name: Check License and date from prs files
         uses: thalleslmF/actions-license@0.0.4
+        with:
+          token: ${{ secrets.ACESS_TOKEN }}
