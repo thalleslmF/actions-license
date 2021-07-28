@@ -16,7 +16,6 @@
 
 const core = require('@actions/core')
 const github = require('@actions/github')
-const axios = require('axios');
 const fs = require("fs");
 
 function getExtensionCommentPattern(extension) {
@@ -36,22 +35,17 @@ function getExtensionCommentPattern(extension) {
 
 const checkLicense = async (fileNames, copyrightContent) => {
     const token = core.getInput('token')
-    const compare = github.context.payload.compare
-    console.log(compare)
-    const headers = {
-        authorization: `token ${token}`
-    }
-    const responseCompare = await axios.get(compare,{ headers: headers })
-    console.log(responseCompare.data)
-    const listFilesPr = responseCompare.data.files.map(
-        file => file.filename
-    )
-    console.log(listFilesPr)
-    for ( let name of fileNames) {
-        if(!listFilesPr.includes(name)) {
-            console.log(`${name} not in PR: ignoring...`)
-            continue
-        }
+    const octokit = github.getOctokit(token)
+    const prNumber = github.context.payload.pull_request.number
+    const owner = github.context.payload.repository.owner
+    console.log(github.context.payload.repository)
+    const response = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
+        owner: owner,
+        repo: repo,
+        pull_number: prNumber
+    }))
+    console.log(response)
+    for( let name of fileNames) {
         fs.open(name, 'r', (status,fd) => {
             var buffer = new Buffer(8000)
             fs.read(fd, buffer, 0, 8000, 0, (err) => {
