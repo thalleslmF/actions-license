@@ -39,10 +39,11 @@ const checkLicense = async (fileNames, copyrightContent) => {
     const octokit = github.getOctokit(token)
     const prNumber = github.context.payload.pull_request ? github.context.payload.pull_request.number :  1
     console.log(prNumber)
+    console.log( github.context.payload)
     const owner = github.context.payload.repository.owner
     const repo = github.context.payload.repository.name
     console.log(owner)
-    console.log(repo)
+    console.log( github.context.payload)
     const responsePr = await octokit.rest.pulls.get({
         owner: owner,
         repo: repo,
