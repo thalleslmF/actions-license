@@ -40,11 +40,11 @@ const checkLicense = async (fileNames, copyrightContent) => {
     console.log(prNumber)
     const owner = github.context.payload.repository.owner
     const repo = github.context.payload.repository.name
-    const response = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
+    const response = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
         owner: owner,
         repo: repo,
         pull_number: prNumber
-    }))
+    })
     console.log(response)
     for( let name of fileNames) {
         fs.open(name, 'r', (status,fd) => {
