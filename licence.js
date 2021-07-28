@@ -33,8 +33,20 @@ function getExtensionCommentPattern(extension) {
     return result
 }
 
-const checkLicense = async (fileNames, copyrightContent) => {
-    const token = core.getInput('token')
+function hasCorrectCopyrightDate(copyrightFile, status, startDateLicense) {
+    let requiredDate = ''
+    if (status === 'modified'){
+        requiredDate = `${startDateLicense, new Date().getFullYear()}`
+    }
+    if (status == 'created'){
+        requiredDate = new Date().getFullYear()
+    }
+    return copyrightFile.includes(requiredDate)
+}
+
+const checkLicense = async (fileNames, config) => {
+    let errors = []
+    const token = core.getInput('token') || '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 '
     const octokit = github.getOctokit(token)
     const prNumber = github.context.payload.pull_request.number
     const owner = github.context.payload.repository.owner.login
@@ -45,23 +57,22 @@ const checkLicense = async (fileNames, copyrightContent) => {
         pull_number: prNumber
     }))
 
-    console.log(responsePr.data.compare.split('/').unshift())
-    console.log(responsePr.data.compare.split('/'))
-    console.log(responsePr.data.compare.split('/').pop())
-
     const responseCompare = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
         owner: owner,
-        repo: repo,
-        basehead: `${responsePr.data.head.sha}...${responsePr.data.base.sha}`
+q        basehead: `${responsePr.data.base.sha}...${responsePr.data.head.sha}`
     })
     const listFilesPr = responseCompare.data.files.map(
-        file => file.filename
+        file => {
+            return {
+                name: file.filename,
+                status: file.status
+            }
+        }
     )
-    console.log(listFilesPr)
     for ( let name of fileNames) {
 
-        if( !listFilesPr.includes(name)) {
-            console.info(`${name} not in PR: ignoring...`)
+        if( !listFilesPr.some(
+            file => file.name === name)) {
             continue
         }
         fs.open(name, 'r', (status,fd) => {
@@ -72,23 +83,39 @@ const checkLicense = async (fileNames, copyrightContent) => {
                     console.error(`Error reading file ${err}`)
                 }
                 const copyrightFile = buffer.toString('utf-8')
-                const allCopyrightIncluded = copyrightContent.every(
+                const allCopyrightIncluded = config.copyrightContent.every(
                     line => copyrightFile.includes(line)
                 )
 
                 if (!allCopyrightIncluded) {
                     console.error(`File ${name} :No copyright header!`)
+                    errors.push(
+                        name
+                    )
                 } else {
-                    console.error(`File ${name} :ok!`)
+                    const fileSearched = listFilesPr.find(
+                        file => file.name === name
+                    )
+                    const correctDate = hasCorrectCopyrightDate(copyrightFile, fileSearched.status, config.startDateLicense)
+                    if (correctDate) {
+                        console.log(`File ${name} :ok!`)
+                    } else {
+                        console.error(`fix file: ${name} copyright date!`)
+                        errors.push(
+                            name
+                        )
+                    }
                 }
             })
         })
     }
-
-
-
+    if(errors.length) {
+        throw new Error(`
+            Quantity of copyright errors: ${errors.length}
+            Fix copyright on the following files: ${errors}
+        `)
+    }
 }
-
 
 
 exports.checkLicense = checkLicense
