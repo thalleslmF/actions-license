@@ -59,7 +59,8 @@ const checkLicense = async (fileNames, config) => {
 
     const responseCompare = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
         owner: owner,
-q        basehead: `${responsePr.data.base.sha}...${responsePr.data.head.sha}`
+        repo: repo,
+        basehead: `${responsePr.data.base.sha}...${responsePr.data.head.sha}`
     })
     const listFilesPr = responseCompare.data.files.map(
         file => {
