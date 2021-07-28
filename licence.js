@@ -36,9 +36,9 @@ function getExtensionCommentPattern(extension) {
 const checkLicense = async (fileNames, copyrightContent) => {
     const token = core.getInput('token')
     const octokit = github.getOctokit(token)
+    console.log(github.context.payload.repository)
     const prNumber = github.context.payload.pull_request.number
     const owner = github.context.payload.repository.owner
-    console.log(github.context.payload.repository)
     const response = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
         owner: owner,
         repo: repo,
