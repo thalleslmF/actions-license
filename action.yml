@@ -1,0 +1,18 @@
+name: 'Check License and date from prs files'
+description: 'Check License and date from prs files'
+inputs:
+  token:  # id da entrada
+    description: 'Github token'
+    required: true
+  owner: # id da entrada
+    description: 'Github token'
+    required: true
+  repo: # id da entrada
+    description: 'Github token'
+    required: true
+outputs:
+  time: # id da saída
+    description: 'The time we greeted you'
+runs:
+  using: 'node12'
+  main: 'main.js'
