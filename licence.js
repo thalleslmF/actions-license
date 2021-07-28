@@ -46,6 +46,7 @@ const checkLicense = async (fileNames, copyrightContent) => {
     }))
 
     console.log(responsePr.data)
+    console.log(responsePr.data)
 
     const responseCompare = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
         owner: owner,
