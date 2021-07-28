@@ -35,17 +35,34 @@ function getExtensionCommentPattern(extension) {
 
 const checkLicense = async (fileNames, copyrightContent) => {
     const token = core.getInput('token')
+
     const octokit = github.getOctokit(token)
-    const prNumber = github.context.payload.pull_request.number
+    const prNumber = github.context.payload.pull_request ? github.context.payload.pull_request.number :  1
+    console.log(prNumber)
     const owner = github.context.payload.repository.owner
     const repo = github.context.payload.repository.name
-    const response = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
+    console.log(owner)
+    console.log(repo)
+    const responsePr = await octokit.rest.pulls.get({
         owner: owner,
         repo: repo,
         pull_number: prNumber
-    }))
-    console.log(response)
-    for( let name of fileNames) {
+    })
+    console.log(responsePr.data.head.sha)
+    const responseCompare = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
+        owner: owner,
+        repo: repo,
+        basehead: `${responsePr.data.head.sha}...${responsePr.data.base.sha}`
+    })
+    const listFilesPr = responseCompare.data.files.map(
+        file => file.filename
+    )
+    console.log(listFilesPr)
+    for ( let name of fileNames) {
+        if(!listFilesPr.includes(name)) {
+            console.log(`${name} not in PR: ignoring...`)
+            continue
+        }
         fs.open(name, 'r', (status,fd) => {
             var buffer = new Buffer(8000)
             fs.read(fd, buffer, 0, 8000, 0, (err) => {
