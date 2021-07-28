@@ -4,12 +4,6 @@ inputs:
   token:  # id da entrada
     description: 'Github token'
     required: true
-  owner: # id da entrada
-    description: 'Github token'
-    required: true
-  repo: # id da entrada
-    description: 'Github token'
-    required: true
 outputs:
   time: # id da saída
     description: 'The time we greeted you'
