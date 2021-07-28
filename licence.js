@@ -39,14 +39,28 @@ const checkLicense = async (fileNames, copyrightContent) => {
     const prNumber = github.context.payload.pull_request.number
     const owner = github.context.payload.repository.owner.login
     const repo = github.context.payload.repository.name
-    const response = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
+    const responsePr = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
         owner: owner,
         repo: repo,
         pull_number: prNumber
     }))
-    console.log(response)
-    for( let name of fileNames) {
+
+    const responseCompare = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
+        owner: owner,
+        repo: repo,
+        basehead: `${responsePr.data.head.sha}...${responsePr.data.base.sha}`
+    })
+    const listFilesPr = responseCompare.data.files.map(
+        file => file.filename
+    )
+
+    for ( let name of fileNames) {
+        if( !listFilesPr.includes(name)) {
+            console.log(`${name} not in PR: ignoring...`)
+            continue
+        }
         fs.open(name, 'r', (status,fd) => {
+
             var buffer = new Buffer(8000)
             fs.read(fd, buffer, 0, 8000, 0, (err) => {
                 if (err) {
