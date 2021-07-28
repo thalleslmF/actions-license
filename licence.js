@@ -45,6 +45,8 @@ const checkLicense = async (fileNames, copyrightContent) => {
         pull_number: prNumber
     }))
 
+    console.log(responsePr.data)
+
     const responseCompare = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
         owner: owner,
         repo: repo,
@@ -53,8 +55,9 @@ const checkLicense = async (fileNames, copyrightContent) => {
     const listFilesPr = responseCompare.data.files.map(
         file => file.filename
     )
-
+    console.log(listFilesPr)
     for ( let name of fileNames) {
+
         if( !listFilesPr.includes(name)) {
             console.info(`${name} not in PR: ignoring...`)
             continue
