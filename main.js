@@ -19,3 +19,4 @@ glob(
             )
     }
 )
+console.log('license must fail!')
