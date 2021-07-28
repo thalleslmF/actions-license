@@ -27,5 +27,6 @@
     "upgrades/**",
     ".storybook",
     ".svg"
-  ]
+  ],
+  "startDateLicense": 2020
 }

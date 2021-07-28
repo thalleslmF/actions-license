@@ -6,12 +6,13 @@ const data = fs.readFileSync(file, 'utf-8');
 let dataObject = JSON.parse(data)
 let copyrightContent = dataObject.copyright
 let ignore = dataObject.ignore
+let startDateLicense = dataObject.startDateLicense
 glob(
     "**/*.*",{cwd: process.cwd(), ignore: ignore }, (err,fileNames) => {
         if (err) {
             console.log(err)
         }
-        checkLicense(fileNames, copyrightContent).then(r =>
+        checkLicense(fileNames, { copyrightContent: copyrightContent, startDateLicense: startDateLicense }).then(r =>
         console.log(r))
             .catch(
                 err => console.error(err)
