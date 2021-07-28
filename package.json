@@ -13,6 +13,7 @@
     "@actions/core": "^1.4.0",
     "@actions/github": "^5.0.0",
     "aglob": "^3.0.2",
+    "axios": "^0.21.1",
     "glob": "^7.1.7"
   }
 }
