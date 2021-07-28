@@ -36,7 +36,6 @@ function getExtensionCommentPattern(extension) {
 
 const checkLicense = async (fileNames, copyrightContent) => {
     const token = core.getInput('token')
-
     const compare = github.context.payload.compare
     console.log(compare)
     const headers = {
