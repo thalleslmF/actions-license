@@ -56,7 +56,7 @@ const checkLicense = async (fileNames, copyrightContent) => {
 
     for ( let name of fileNames) {
         if( !listFilesPr.includes(name)) {
-            console.log(`${name} not in PR: ignoring...`)
+            console.info(`${name} not in PR: ignoring...`)
             continue
         }
         fs.open(name, 'r', (status,fd) => {
