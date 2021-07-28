@@ -42,7 +42,7 @@ const checkLicense = async (fileNames, copyrightContent) => {
         authorization: `token ${token}`
     }
     const responseCompare = await axios.get(compare,{ headers: headers })
-    console.log(responseCompare)
+    console.log(responseCompare.data)
     const listFilesPr = responseCompare.data.files.map(
         file => file.filename
     )
