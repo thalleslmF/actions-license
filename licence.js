@@ -99,12 +99,11 @@ function removeIgnoredFiles(filesPr, fileNames) {
 }
 
 const checkLicense = async (fileNames, config) => {
-    console.log(fileNames)
-    const token = core.getInput('token') || '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 '
+    const token = core.getInput('token')
     const octokit = github.getOctokit(token)
-    const prNumber = 17 || github.context.payload.pull_request.number
-    const owner = 'thalleslmf' ||  github.context.payload.repository.owner.login
-    const repo = 'actions-license' || github.context.payload.repository.name
+    const prNumber = github.context.payload.pull_request.number
+    const owner =  github.context.payload.repository.owner.login
+    const repo =  github.context.payload.repository.name
     const responsePr = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
         owner: owner,
         repo: repo,
@@ -126,7 +125,6 @@ const checkLicense = async (fileNames, config) => {
     )
     const filesFiltered = removeIgnoredFiles(filesPr, fileNames)
     return await checkFilesLicense(filesFiltered, config)
-
 
 }
 
