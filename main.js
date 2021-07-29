@@ -1,7 +1,6 @@
 
 const { checkLicense } = require("./licence");
 const core = require('@actions/core')
-const util = require("util")
 const chalk = require('chalk')
 fs = require('fs');
 glob = require('glob')
