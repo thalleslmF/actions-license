@@ -1,4 +1,5 @@
 const { checkLicense } = require("./licence");
+const util = require("util");
 fs = require('fs');
 glob = require('glob')
 let file = "config.json"
@@ -8,14 +9,12 @@ let copyrightContent = dataObject.copyright
 let ignore = dataObject.ignore
 let startDateLicense = dataObject.startDateLicense
 glob(
-    "**/*.*",{cwd: process.cwd(), ignore: ignore }, (err,fileNames) => {
-        if (err) {
-            console.log(err)
-        }
-        checkLicense(fileNames, { copyrightContent: copyrightContent, startDateLicense: startDateLicense }).then(r =>
-        console.log(r))
-            .catch(
-                err => console.error(err)
-            )
+    "**/*.*",{cwd: process.cwd(), ignore }, async (err,fileNames) => {
+            const errors = await checkLicense(fileNames, { copyrightContent: copyrightContent, startDateLicense: startDateLicense })
+            if(errors) {
+                console.log(errors.title)
+                console.log(errors.details)
+                process.exit()
+            }
     }
 )

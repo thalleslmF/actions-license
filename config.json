@@ -14,10 +14,10 @@
   ],
   "ignore": [
     "node_modules/**",
-    ".md",
-    ".json",
+    "**.md",
+    "**.json",
     ".png",
-    ".idea",
+    "**.idea",
     ".github",
     ".git",
     ".gitignore",
