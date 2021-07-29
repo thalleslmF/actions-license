@@ -18,7 +18,7 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const fs = require("fs");
 const util = require("util");
-
+const chalk = require('chalk')
 function hasCorrectCopyrightDate(copyrightFile, status, startDateLicense) {
     let requiredDate = ''
     if (status === 'modified'){
@@ -57,16 +57,17 @@ async function checkLicenseFile(file, config, fd) {
                 )
 
                 if (!allCopyrightIncluded) {
-                    console.error(`File ${file.name} :No copyright header!`)
+                    console.log('File ' + chalk.yellow(file.name) + chalk.red(': No copyright header!'))
                     reject(file.name)
                 } else {
 
                     const correctDate = hasCorrectCopyrightDate(copyrightFile, file.status, config.startDateLicense)
                     if (correctDate) {
+                        console.log('File ' + chalk.yellow(file.name) + chalk.green(': ok!'))
                         console.log(`File ${file.name} :ok!`)
                         resolve()
                     } else {
-                        console.error(`fix file: ${file.name} copyright date!`)
+                        console.log(`file ${file.name}: Fix copyright date!`)
                         reject(file.name)
                     }
                 }

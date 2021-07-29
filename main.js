@@ -1,5 +1,8 @@
+
 const { checkLicense } = require("./licence");
-const util = require("util");
+const core = require('@actions/core')
+const util = require("util")
+const chalk = require('chalk')
 fs = require('fs');
 glob = require('glob')
 let file = "config.json"
@@ -10,11 +13,12 @@ let ignore = dataObject.ignore
 let startDateLicense = dataObject.startDateLicense
 glob(
     "**/*.*",{cwd: process.cwd(), ignore }, async (err,fileNames) => {
-            const errors = await checkLicense(fileNames, { copyrightContent: copyrightContent, startDateLicense: startDateLicense })
-            if(errors) {
-                console.log(errors.title)
-                console.log(errors.details)
-                process.exit()
+            const error = await checkLicense(fileNames, { copyrightContent: copyrightContent, startDateLicense: startDateLicense })
+            if(error) {
+                console.log(chalk.red(error.title))
+                console.log(chalk.red(error.message))
+                core.setFailed('Action failed');
             }
     }
 )
+console.log('should fail')
