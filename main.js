@@ -16,7 +16,7 @@ glob(
             const error = await checkLicense(fileNames, { copyrightContent: copyrightContent, startDateLicense: startDateLicense })
             if(error) {
                 console.log(chalk.red(error.title))
-                console.log(chalk.red(error.message))
+                console.log(chalk.red(error.details))
                 core.setFailed('Action failed');
             }
     }

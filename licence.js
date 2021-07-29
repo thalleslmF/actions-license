@@ -64,10 +64,9 @@ async function checkLicenseFile(file, config, fd) {
                     const correctDate = hasCorrectCopyrightDate(copyrightFile, file.status, config.startDateLicense)
                     if (correctDate) {
                         console.log('File ' + chalk.yellow(file.name) + chalk.green(': ok!'))
-                        console.log(`File ${file.name} :ok!`)
                         resolve()
                     } else {
-                        console.log(`file ${file.name}: Fix copyright date!`)
+                        console.log('File '+ chalk.yellow(file.name)+ chalk.red(': Fix copyright date!'))
                         reject(file.name)
                     }
                 }
