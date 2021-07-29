@@ -35,4 +35,3 @@ glob(
             }
     }
 )
-console.log('should fail')
