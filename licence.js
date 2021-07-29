@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, 2021 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
+ * Copyright 2021 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,16 @@ const github = require('@actions/github')
 const fs = require("fs");
 const util = require("util");
 const chalk = require("chalk");
-function hasCorrectCopyrightDate(copyrightFile, status, startDateLicense) {
+function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
     let requiredDate = ''
-    if (status === 'modified'){
-        requiredDate = `${startDateLicense, new Date().getFullYear()}`
+    if (file.status === 'modified'){
+        if(file.year < new Date().getFullYear()) {
+            requiredDate = `Copyright ${startDateLicense, new Date().getFullYear()}`
+        }
+        requiredDate = `Copyright ${new Date().getFullYear()}`
     }
-    if (status == 'created'){
-        requiredDate = new Date().getFullYear()
+    if (file.status === 'created'){
+        requiredDate = `Copyright ${new Date().getFullYear()}`
     }
     return copyrightFile.includes(requiredDate)
 }
@@ -61,7 +64,7 @@ async function checkLicenseFile(file, config, fd) {
                     reject(file.name)
                 } else {
 
-                    const correctDate = hasCorrectCopyrightDate(copyrightFile, file.status, config.startDateLicense)
+                    const correctDate = hasCorrectCopyrightDate(copyrightFile, file, config.startDateLicense)
                     if (correctDate) {
                         console.log('File ' + chalk.yellow(file.name+": ") + chalk.green('ok!'))
                         resolve()
@@ -98,21 +101,40 @@ function removeIgnoredFiles(filesPr, fileNames) {
     )
 }
 
+async function getCreationYear(file, config) {
+    const response = await config.octokit.request(`GET /repos/{owner}/{repo}/commits?path=${file.name}`, {
+        owner: config.owner,
+        repo: config.repo
+    })
+    const commitsDates = response.data.map(
+        data => new Date(data.commit.author.date)
+    )
+    const creationDate = Math.min.apply(null, commitsDates)
+    return new Date(creationDate).getFullYear()
+}
+
 const checkLicense = async (fileNames, config) => {
     const token = core.getInput('token')
+
     const octokit = github.getOctokit(token)
-    const prNumber = github.context.payload.pull_request.number
+    const prNumber = github.context.payload.pull_request. number
     const owner = github.context.payload.repository.owner.login
     const repo = github.context.payload.repository.name
-    const responsePr = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
+     config = {
+        ...config,
         owner: owner,
         repo: repo,
+       octokit: octokit
+    }
+    const responsePr = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
+        owner: config.owner,
+        repo: config.repo,
         pull_number: prNumber
     }))
 
     const responseCompare = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
-        owner: owner,
-        repo: repo,
+        owner: config.owner,
+        repo: config.repo,
         basehead: `${responsePr.data.base.sha}...${responsePr.data.head.sha}`
     })
     const filesPr = responseCompare.data.files.map(
@@ -124,6 +146,13 @@ const checkLicense = async (fileNames, config) => {
         }
     )
     const filesFiltered = removeIgnoredFiles(filesPr, fileNames)
+    await filesFiltered.map(
+        (file) => {
+            return {
+                ...file,
+                year : getCreationYear(file, config)
+            }
+        })
     return await checkFilesLicense(filesFiltered, config)
 
 }
