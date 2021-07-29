@@ -17,21 +17,7 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
 const fs = require("fs");
-
-function getExtensionCommentPattern(extension) {
-    let result = ''
-    switch(extension) {
-
-        case "yaml" : case "sh": case "properties":
-            result = "#"
-        break;
-         case "sql":
-         result = "--"
-            default:
-         result = "/*"
-    }
-    return result
-}
+const util = require("util");
 
 function hasCorrectCopyrightDate(copyrightFile, status, startDateLicense) {
     let requiredDate = ''
@@ -44,13 +30,81 @@ function hasCorrectCopyrightDate(copyrightFile, status, startDateLicense) {
     return copyrightFile.includes(requiredDate)
 }
 
-const checkLicense = async (fileNames, config) => {
+async function openFile(name) {
+    return await new Promise(
+        (resolve,reject) => {
+            fs.open(name, 'r', (error, fd) => {
+                if (error) {
+                    reject(error)
+                } else {
+                    resolve(fd)
+                }
+            })
+        })
+}
+
+async function checkLicenseFile(file, config, fd) {
+    let buffer = new Buffer(8000)
+    return await new Promise(
+        (resolve, reject) => {
+            fs.read(fd, buffer, 0, 8000, 0, (err) => {
+                if (err) {
+                    console.error(`Error reading file ${err}`)
+                }
+                const copyrightFile = buffer.toString('utf-8')
+                const allCopyrightIncluded = config.copyrightContent.every(
+                    line => copyrightFile.includes(line)
+                )
+
+                if (!allCopyrightIncluded) {
+                    console.error(`File ${file.name} :No copyright header!`)
+                    reject(file.name)
+                } else {
+
+                    const correctDate = hasCorrectCopyrightDate(copyrightFile, file.status, config.startDateLicense)
+                    if (correctDate) {
+                        console.log(`File ${file.name} :ok!`)
+                        resolve()
+                    } else {
+                        console.error(`fix file: ${file.name} copyright date!`)
+                        reject(file.name)
+                    }
+                }
+            })
+        })
+    }
+
+async function checkFilesLicense(filesPr, config) {
     let errors = []
-    const token = core.getInput('token') || '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 '
+    for ( let file of filesPr) {
+        const fd = await openFile(file.name)
+        try{
+            await checkLicenseFile(file, config, fd)
+        } catch (error) {
+            errors.push(error)
+        }
+    }
+    if (errors.length) {
+        return({
+            title: `Quantity of files with copyright errors: ${errors.length}`,
+            details: `Files : ${util.inspect(errors)}`
+        })
+    }
+}
+
+function removeIgnoredFiles(filesPr, fileNames) {
+    return filesPr.filter(
+        file => fileNames.includes(file.name)
+    )
+}
+
+const checkLicense = async (fileNames, config) => {
+    console.log(fileNames)
+    const token = core.getInput('token') || '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 '
     const octokit = github.getOctokit(token)
-    const prNumber = github.context.payload.pull_request.number
-    const owner = github.context.payload.repository.owner.login
-    const repo = github.context.payload.repository.name
+    const prNumber = 17 || github.context.payload.pull_request.number
+    const owner = 'thalleslmf' ||  github.context.payload.repository.owner.login
+    const repo = 'actions-license' || github.context.payload.repository.name
     const responsePr = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
         owner: owner,
         repo: repo,
@@ -62,7 +116,7 @@ const checkLicense = async (fileNames, config) => {
         repo: repo,
         basehead: `${responsePr.data.base.sha}...${responsePr.data.head.sha}`
     })
-    const listFilesPr = responseCompare.data.files.map(
+    const filesPr = responseCompare.data.files.map(
         file => {
             return {
                 name: file.filename,
@@ -70,53 +124,10 @@ const checkLicense = async (fileNames, config) => {
             }
         }
     )
-    for ( let name of fileNames) {
+    const filesFiltered = removeIgnoredFiles(filesPr, fileNames)
+    return await checkFilesLicense(filesFiltered, config)
 
-        if( !listFilesPr.some(
-            file => file.name === name)) {
-            continue
-        }
-        fs.open(name, 'r', (status,fd) => {
 
-            var buffer = new Buffer(8000)
-            fs.read(fd, buffer, 0, 8000, 0, (err) => {
-                if (err) {
-                    console.error(`Error reading file ${err}`)
-                }
-                const copyrightFile = buffer.toString('utf-8')
-                const allCopyrightIncluded = config.copyrightContent.every(
-                    line => copyrightFile.includes(line)
-                )
-
-                if (!allCopyrightIncluded) {
-                    console.error(`File ${name} :No copyright header!`)
-                    errors.push(
-                        name
-                    )
-                } else {
-                    const fileSearched = listFilesPr.find(
-                        file => file.name === name
-                    )
-                    const correctDate = hasCorrectCopyrightDate(copyrightFile, fileSearched.status, config.startDateLicense)
-                    if (correctDate) {
-                        console.log(`File ${name} :ok!`)
-                    } else {
-                        console.error(`fix file: ${name} copyright date!`)
-                        errors.push(
-                            name
-                        )
-                    }
-                }
-            })
-        })
-    }
-    console.log(errors)
-    if(errors.length) {
-        throw new Error(`
-            Quantity of copyright errors: ${errors.length}
-            Fix copyright on the following files: ${errors}
-        `)
-    }
 }
 
 
