@@ -110,6 +110,7 @@ const checkLicense = async (fileNames, config) => {
             })
         })
     }
+    console.log(errors)
     if(errors.length) {
         throw new Error(`
             Quantity of copyright errors: ${errors.length}

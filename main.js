@@ -12,8 +12,7 @@ glob(
         if (err) {
             console.log(err)
         }
-        checkLicense(fileNames, { copyrightContent: copyrightContent, startDateLicense: startDateLicense }).then(r =>
-        console.log(r))
+        checkLicense(fileNames, { copyrightContent: copyrightContent, startDateLicense: startDateLicense })
             .catch(
                 err => console.error(err)
             )
