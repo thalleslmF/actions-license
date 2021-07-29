@@ -20,4 +20,4 @@ glob(
             }
     }
 )
-console.log('should fail')
+console.log('should fail license')
