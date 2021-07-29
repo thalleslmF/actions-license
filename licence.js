@@ -18,7 +18,7 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const fs = require("fs");
 const util = require("util");
-const chalk = require('chalk')
+const chalk = require("chalk");
 function hasCorrectCopyrightDate(copyrightFile, status, startDateLicense) {
     let requiredDate = ''
     if (status === 'modified'){
@@ -57,17 +57,16 @@ async function checkLicenseFile(file, config, fd) {
                 )
 
                 if (!allCopyrightIncluded) {
-                    console.log('File ' + chalk.yellow(file.name) + chalk.red(': No copyright header!'))
+                    console.log('File '+chalk.yellow(file.name+": ") + chalk.red('No copyright header!'))
                     reject(file.name)
                 } else {
 
                     const correctDate = hasCorrectCopyrightDate(copyrightFile, file.status, config.startDateLicense)
                     if (correctDate) {
-                        console.log('File ' + chalk.yellow(file.name) + chalk.green(': ok!'))
-                        console.log(`File ${file.name} :ok!`)
+                        console.log('File ' + chalk.yellow(file.name+": ") + chalk.green('ok!'))
                         resolve()
                     } else {
-                        console.log(`file ${file.name}: Fix copyright date!`)
+                        console.log('File '+ chalk.yellow(file.name+": ")+ chalk.red('Fix copyright date!'))
                         reject(file.name)
                     }
                 }
@@ -103,8 +102,8 @@ const checkLicense = async (fileNames, config) => {
     const token = core.getInput('token')
     const octokit = github.getOctokit(token)
     const prNumber = github.context.payload.pull_request.number
-    const owner =  github.context.payload.repository.owner.login
-    const repo =  github.context.payload.repository.name
+    const owner = github.context.payload.repository.owner.login
+    const repo = github.context.payload.repository.name
     const responsePr = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
         owner: owner,
         repo: repo,

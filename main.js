@@ -1,7 +1,6 @@
 
 const { checkLicense } = require("./licence");
 const core = require('@actions/core')
-const util = require("util")
 const chalk = require('chalk')
 fs = require('fs');
 glob = require('glob')
@@ -16,7 +15,7 @@ glob(
             const error = await checkLicense(fileNames, { copyrightContent: copyrightContent, startDateLicense: startDateLicense })
             if(error) {
                 console.log(chalk.red(error.title))
-                console.log(chalk.red(error.message))
+                console.log(chalk.red(error.details))
                 core.setFailed('Action failed');
             }
     }
