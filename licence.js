@@ -16,66 +16,118 @@
 
 const core = require('@actions/core')
 const github = require('@actions/github')
-const axios = require('axios');
 const fs = require("fs");
-
-function getExtensionCommentPattern(extension) {
-    let result = ''
-    switch(extension) {
-
-        case "yaml" : case "sh": case "properties":
-            result = "#"
-        break;
-         case "sql":
-         result = "--"
-            default:
-         result = "/*"
+const util = require("util");
+const chalk = require('chalk')
+function hasCorrectCopyrightDate(copyrightFile, status, startDateLicense) {
+    let requiredDate = ''
+    if (status === 'modified'){
+        requiredDate = `${startDateLicense, new Date().getFullYear()}`
     }
-    return result
+    if (status == 'created'){
+        requiredDate = new Date().getFullYear()
+    }
+    return copyrightFile.includes(requiredDate)
 }
 
-const checkLicense = async (fileNames, copyrightContent) => {
-    const token = core.getInput('token')
-    const compare = github.context.payload.compare
-    console.log(compare)
-    const headers = {
-        authorization: `token ${token}`
-    }
-    const responseCompare = await axios.get(compare,{ headers: headers })
-    console.log(responseCompare)
-    const listFilesPr = responseCompare.data.files.map(
-        file => file.filename
-    )
-    console.log(listFilesPr)
-    for ( let name of fileNames) {
-        if(!listFilesPr.includes(name)) {
-            console.log(`${name} not in PR: ignoring...`)
-            continue
-        }
-        fs.open(name, 'r', (status,fd) => {
-            var buffer = new Buffer(8000)
+async function openFile(name) {
+    return await new Promise(
+        (resolve,reject) => {
+            fs.open(name, 'r', (error, fd) => {
+                if (error) {
+                    reject(error)
+                } else {
+                    resolve(fd)
+                }
+            })
+        })
+}
+
+async function checkLicenseFile(file, config, fd) {
+    let buffer = new Buffer(8000)
+    return await new Promise(
+        (resolve, reject) => {
             fs.read(fd, buffer, 0, 8000, 0, (err) => {
                 if (err) {
                     console.error(`Error reading file ${err}`)
                 }
                 const copyrightFile = buffer.toString('utf-8')
-                const allCopyrightIncluded = copyrightContent.every(
+                const allCopyrightIncluded = config.copyrightContent.every(
                     line => copyrightFile.includes(line)
                 )
 
                 if (!allCopyrightIncluded) {
-                    console.error(`File ${name} :No copyright header!`)
+                    console.log('File ' + chalk.yellow(file.name) + chalk.red(': No copyright header!'))
+                    reject(file.name)
                 } else {
-                    console.error(`File ${name} :ok!`)
+
+                    const correctDate = hasCorrectCopyrightDate(copyrightFile, file.status, config.startDateLicense)
+                    if (correctDate) {
+                        console.log('File ' + chalk.yellow(file.name) + chalk.green(': ok!'))
+                        console.log(`File ${file.name} :ok!`)
+                        resolve()
+                    } else {
+                        console.log(`file ${file.name}: Fix copyright date!`)
+                        reject(file.name)
+                    }
                 }
             })
         })
     }
 
-
-
+async function checkFilesLicense(filesPr, config) {
+    let errors = []
+    for ( let file of filesPr) {
+        const fd = await openFile(file.name)
+        try{
+            await checkLicenseFile(file, config, fd)
+        } catch (error) {
+            errors.push(error)
+        }
+    }
+    if (errors.length) {
+        return({
+            title: `Quantity of files with copyright errors: ${errors.length}`,
+            details: `Files : ${util.inspect(errors)}`
+        })
+    }
 }
 
+function removeIgnoredFiles(filesPr, fileNames) {
+    return filesPr.filter(
+        file => fileNames.includes(file.name)
+    )
+}
+
+const checkLicense = async (fileNames, config) => {
+    const token = core.getInput('token')
+    const octokit = github.getOctokit(token)
+    const prNumber = github.context.payload.pull_request.number
+    const owner =  github.context.payload.repository.owner.login
+    const repo =  github.context.payload.repository.name
+    const responsePr = await octokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', ({
+        owner: owner,
+        repo: repo,
+        pull_number: prNumber
+    }))
+
+    const responseCompare = await octokit.request('GET /repos/{owner}/{repo}/compare/{basehead}', {
+        owner: owner,
+        repo: repo,
+        basehead: `${responsePr.data.base.sha}...${responsePr.data.head.sha}`
+    })
+    const filesPr = responseCompare.data.files.map(
+        file => {
+            return {
+                name: file.filename,
+                status: file.status
+            }
+        }
+    )
+    const filesFiltered = removeIgnoredFiles(filesPr, fileNames)
+    return await checkFilesLicense(filesFiltered, config)
+
+}
 
 
 exports.checkLicense = checkLicense
