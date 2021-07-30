@@ -23,7 +23,7 @@ function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
     let requiredDate = ''
     if (file.status === 'modified'){
         if(file.year < new Date().getFullYear()) {
-            requiredDate = `Copyright ${startDateLicense, new Date().getFullYear()}`
+            requiredDate = `Copyright ${startDateLicense}, ${new Date().getFullYear()}`
         }else{
             requiredDate = `Copyright ${new Date().getFullYear()}`
         }
@@ -31,6 +31,7 @@ function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
     if (file.status === 'created'){
         requiredDate = `Copyright ${new Date().getFullYear()}`
     }
+    console.log(requiredDate)
     return copyrightFile.includes(requiredDate)
 }
 
