@@ -21,6 +21,7 @@ const util = require("util");
 const chalk = require("chalk");
 function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
     let requiredDate = ''
+    console.log(file.year)
     if (file.status === 'modified'){
         if(file.year < new Date().getFullYear()) {
             requiredDate = `Copyright ${startDateLicense, new Date().getFullYear()}`
@@ -109,7 +110,9 @@ async function getCreationYear(file, config) {
     const commitsDates = response.data.map(
         data => new Date(data.commit.author.date)
     )
+    console.log(commitsDates)
     const creationDate = Math.min.apply(null, commitsDates)
+    console.log(creationDate)
     return new Date(creationDate).getFullYear()
 }
 
