@@ -19,7 +19,7 @@ const github = require('@actions/github')
 const fs = require("fs");
 const util = require("util");
 const chalk = require("chalk");
-async function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
+function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
     let requiredDate = ''
     console.log(file.year)
     if (file.status === 'modified'){
@@ -51,7 +51,7 @@ async function checkLicenseFile(file, config, fd) {
     let buffer = new Buffer(8000)
     return await new Promise(
         (resolve, reject) => {
-            fs.read(fd, buffer, 0, 8000, 0, async (err) => {
+            fs.read(fd, buffer, 0, 8000, 0, (err) => {
                 if (err) {
                     console.error(`Error reading file ${err}`)
                 }
@@ -65,7 +65,7 @@ async function checkLicenseFile(file, config, fd) {
                     reject(file.name)
                 } else {
 
-                    const correctDate = await hasCorrectCopyrightDate(copyrightFile, file, config.startDateLicense)
+                    const correctDate = hasCorrectCopyrightDate(copyrightFile, file, config.startDateLicense)
                     if (correctDate) {
                         console.log('File ' + chalk.yellow(file.name+": ") + chalk.green('ok!'))
                         resolve()
@@ -110,9 +110,7 @@ async function getCreationYear(file, config) {
     const commitsDates = response.data.map(
         data => new Date(data.commit.author.date)
     )
-    console.log(commitsDates)
     const creationDate = Math.min.apply(null, commitsDates)
-    console.log(creationDate)
     return new Date(creationDate).getFullYear()
 }
 
@@ -149,13 +147,14 @@ const checkLicense = async (fileNames, config) => {
         }
     )
     const filesFiltered = removeIgnoredFiles(filesPr, fileNames)
-    await filesFiltered.map(
-        (file) => {
+    await Promise.all(filesFiltered.map(
+        async (file) => {
             return {
                 ...file,
-                year : getCreationYear(file, config)
+                year :  getCreationYear(file, config)
             }
-        })
+        }))
+    console.log(filesFiltered)
     return await checkFilesLicense(filesFiltered, config)
 
 }
