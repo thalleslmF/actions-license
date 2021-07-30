@@ -19,7 +19,7 @@ const github = require('@actions/github')
 const fs = require("fs");
 const util = require("util");
 const chalk = require("chalk");
-function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
+async function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
     let requiredDate = ''
     console.log(file.year)
     if (file.status === 'modified'){
@@ -51,7 +51,7 @@ async function checkLicenseFile(file, config, fd) {
     let buffer = new Buffer(8000)
     return await new Promise(
         (resolve, reject) => {
-            fs.read(fd, buffer, 0, 8000, 0, (err) => {
+            fs.read(fd, buffer, 0, 8000, 0, async (err) => {
                 if (err) {
                     console.error(`Error reading file ${err}`)
                 }
@@ -65,7 +65,7 @@ async function checkLicenseFile(file, config, fd) {
                     reject(file.name)
                 } else {
 
-                    const correctDate = hasCorrectCopyrightDate(copyrightFile, file, config.startDateLicense)
+                    const correctDate = await hasCorrectCopyrightDate(copyrightFile, file, config.startDateLicense)
                     if (correctDate) {
                         console.log('File ' + chalk.yellow(file.name+": ") + chalk.green('ok!'))
                         resolve()
