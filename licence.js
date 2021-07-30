@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
+ * Copyright 2020, 2021 ZUP IT SERVICOS EM TECNOLOGIA E INOVACAO SA
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,8 @@ const fs = require("fs");
 const util = require("util");
 const chalk = require("chalk");
 function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
-    let requiredDate = ''
-    if (file.status === 'modified'){
-        if(file.year < new Date().getFullYear()) {
-            requiredDate = `Copyright ${startDateLicense}, ${new Date().getFullYear()}`
-        }else{
-            requiredDate = `Copyright ${new Date().getFullYear()}`
-        }
-    } else{
-        requiredDate = `Copyright ${new Date().getFullYear()}`
-    }
-    console.log(requiredDate)
+    const requiredDate = `Copyright ${startDateLicense}, ${new Date().getFullYear()}`
+
     return copyrightFile.includes(requiredDate)
 }
 
@@ -154,7 +145,6 @@ const checkLicense = async (fileNames, config) => {
                 year :  await getCreationYear(file, config)
             }
         }))
-    console.log(filesWithYear)
     return await checkFilesLicense(filesWithYear, config)
 
 }
