@@ -21,19 +21,16 @@ const util = require("util");
 const chalk = require("chalk");
 function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
     let requiredDate = ''
-    console.log(file.year < new Date().getFullYear())
-    console.log(startDateLicense)
-    console.log(new Date().getFullYear())
     if (file.status === 'modified'){
         if(file.year < new Date().getFullYear()) {
             requiredDate = `Copyright ${startDateLicense, new Date().getFullYear()}`
+        }else{
+            requiredDate = `Copyright ${new Date().getFullYear()}`
         }
-        requiredDate = `Copyright ${new Date().getFullYear()}`
     }
     if (file.status === 'created'){
         requiredDate = `Copyright ${new Date().getFullYear()}`
     }
-    console.log(requiredDate)
     return copyrightFile.includes(requiredDate)
 }
 
