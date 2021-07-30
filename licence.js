@@ -147,15 +147,15 @@ const checkLicense = async (fileNames, config) => {
         }
     )
     const filesFiltered = removeIgnoredFiles(filesPr, fileNames)
-    await Promise.all(filesFiltered.map(
+    const filesWithYear = await Promise.all(filesFiltered.map(
          (file) => {
             return {
                 ...file,
                 year :  getCreationYear(file, config)
             }
         }))
-    console.log(filesFiltered)
-    return await checkFilesLicense(filesFiltered, config)
+    console.log(filesWithYear)
+    return await checkFilesLicense(filesWithYear, config)
 
 }
 
