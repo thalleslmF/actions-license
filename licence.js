@@ -20,7 +20,13 @@ const fs = require("fs");
 const util = require("util");
 const chalk = require("chalk");
 function hasCorrectCopyrightDate(copyrightFile, file, startDateLicense) {
-    const requiredDate = `Copyright ${startDateLicense}, ${new Date().getFullYear()}`
+    const currentYear = new Date().getFullYear()
+    let requiredDate = ''
+    if (startDateLicense < currentYear) {
+        requiredDate = `Copyright ${startDateLicense}, ${currentYear}`
+    } else {
+        requiredDate = `Copyright ${startDateLicense}`
+    }
 
     return copyrightFile.includes(requiredDate)
 }
@@ -39,7 +45,7 @@ async function openFile(name) {
 }
 
 async function checkLicenseFile(file, config, fd) {
-    let buffer = new Buffer(8000)
+    let buffer = Buffer.alloc(8000)
     return await new Promise(
         (resolve, reject) => {
             fs.read(fd, buffer, 0, 8000, 0, (err) => {
