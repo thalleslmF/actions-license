@@ -1,6 +1,6 @@
 # actions-license
 This action checks the license headers in the files of  pull requests
-Inspired on [Deno license checker]
+Inspired on [Deno License Checker]
 
 # Usage
 
@@ -25,5 +25,9 @@ Create `config.json` like the following:
     "upgrades/**",
     "**.svg"
   ],
- [Deno license checker]: https://github.com/kt3k/deno_license_checker
+  ``` 
+[Deno license checker]: https://github.com/kt3k/deno_license_checker
+  
+ 
+ 
 ```
