@@ -115,6 +115,7 @@ const checkLicense = async (fileNames, config) => {
     const token = core.getInput('token')
 
     const octokit = github.getOctokit(token)
+    console.log(github.context)
     const prNumber = github.context.payload.pull_request. number
     const owner = github.context.payload.repository.owner.login
     const repo = github.context.payload.repository.name
