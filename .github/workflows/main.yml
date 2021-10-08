@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Check License and date from prs files
-        uses: thalleslmF/actions-license@9b0d560034c734f0159cd205a4a701071d337a87
+        uses: thalleslmF/actions-license@2191f50e5bbd38d5b73ac0e05b454bfafe9b7418
         with:
           token: ${{ secrets.ACESS_TOKEN }}
         env:
