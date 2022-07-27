@@ -1,4 +1,4 @@
-# actions-license-1
+# actions-license
 This action checks the license headers in the files of  pull requests
 Inspired on [Deno License Checker]
 
